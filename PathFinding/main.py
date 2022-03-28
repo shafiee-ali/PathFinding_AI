@@ -1,6 +1,7 @@
 import enum
 import os
 import random
+import time
 from functools import partial
 
 from PyQt5 import QtWidgets
@@ -135,16 +136,19 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def add_neighbors_to_queue(self, center_pos):
         cx, cy = center_pos
-        for x, y in [(-1, 0), (0, 1), (1, 0), (0, -1)]:
+        points = [(-1, 0), (0, 1), (1, 0), (0, -1)]
+        if self.algorithm == FindPathAlgorithm.DFS:
+            points = points[::-1]
+        for x, y in points:
             xx, yy = cx + x, cy + y
             if (not self.is_wall_btn(xx, yy)) and (xx, yy) not in self.cells_set and (self.grid_board_colors[xx][yy] == Colors.White or self.grid_board_colors[xx][yy] == Colors.Red):
                 self.cells_queue.append((xx, yy))
-                self.cells_set.add((xx, yy))
                 self.previous_cells[xx][yy] = (cx, cy)
 
     def bfs(self):
         self.cells_queue = list()
         self.cells_set = set()
+        self.cells_set.add(self.green_btn_position)
         self.add_neighbors_to_queue(self.green_btn_position)
         while self.cells_queue:
             x, y = self.cells_queue.pop(0)
@@ -155,6 +159,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 continue
             else:
                 self.change_btn_color(x, y, Colors.Cyan)
+                self.sleep_program(300)
                 self.add_neighbors_to_queue((x, y))
 
     def sleep_program(self, milli_second):
@@ -163,31 +168,46 @@ class MainWindow(QtWidgets.QMainWindow):
         loop.exec_()
 
     def dfs(self, i, j):
-        if (i, j) == self.red_btn_position:
-            self.find_dst = True
-            return
-        if self.is_wall_btn(i, j) or self.grid_board_colors[i][j] == Colors.Black or self.grid_board_colors[i][j] == Colors.Cyan:
-            return
-        self.change_btn_color(i, j, Colors.Cyan)
-        # self.sleep_program(300)
-        self.previous_cells[i-1][j] = (i,j)
-        self.dfs(i-1, j)
-        if not self.find_dst:
-            self.previous_cells[i - 1][j] = (i, j)
-            self.dfs(i, j+1)
-        if not self.find_dst:
-            self.previous_cells[i - 1][j] = (i, j)
-            self.dfs(i+1, j)
-        if not self.find_dst:
-            self.previous_cells[i - 1][j] = (i, j)
-            self.dfs(i, j-1)
+        # if (i, j) == self.red_btn_position:
+        #     self.find_dst = True
+        #     return
+        # if self.is_wall_btn(i, j) or self.grid_board_colors[i][j] == Colors.Black or self.grid_board_colors[i][j] == Colors.Cyan:
+        #     return
+        # self.change_btn_color(i, j, Colors.Cyan)
+        # self.previous_cells[i-1][j] = (i, j)
+        # self.dfs(i-1, j)
+        # if not self.find_dst:
+        #     self.previous_cells[i - 1][j] = (i, j)
+        #     self.dfs(i, j+1)
+        # if not self.find_dst:
+        #     self.previous_cells[i - 1][j] = (i, j)
+        #     self.dfs(i+1, j)
+        # if not self.find_dst:
+        #     self.previous_cells[i - 1][j] = (i, j)
+        #     self.dfs(i, j-1)
+        self.cells_queue = list()
+        self.cells_set = set()
+        self.cells_set.add(self.green_btn_position)
+        self.add_neighbors_to_queue(self.green_btn_position)
+        while self.cells_queue:
+            x, y = self.cells_queue.pop()
+            if (x, y) == self.red_btn_position:
+                print("end")
+                return
+            elif self.grid_board_colors[x][y] == Colors.Black:
+                continue
+            else:
+                self.change_btn_color(x, y, Colors.Cyan)
+                self.cells_set.add((x, y))
+                # self.sleep_program(500)
+                self.add_neighbors_to_queue((x, y))
 
     def draw_shortest_path(self):
         i, j = self.red_btn_position
         while self.previous_cells[i][j]:
             self.change_btn_color(i, j, Colors.Purple)
             self.change_btn_color(i, j, Colors.Purple)
-            self.sleep_program(200)
+            # self.sleep_program(200)
             i, j = self.previous_cells[i][j]
 
     def emptying_variables(self):
@@ -198,9 +218,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.emptying_variables()
         if self.algorithm == FindPathAlgorithm.BFS:
             print("BFS")
+            s = time.time()
             self.bfs()
-            self.draw_shortest_path()
+            # self.draw_shortest_path()
+            print(time.time()-s)
         elif self.algorithm == FindPathAlgorithm.DFS:
+            s = time.time()
             src_i, src_j = self.green_btn_position
             self.dfs(src_i, src_j)
             # self.sleep_program(2000)
@@ -209,6 +232,7 @@ class MainWindow(QtWidgets.QMainWindow):
             #     self.change_btn_color(i, j, Colors.Red)
             #     # self.sleep_program(300)
             self.draw_shortest_path()
+            print(time.time()-s)
 
 
     def clear_board(self):
@@ -218,10 +242,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def random_fill_board(self):
         self.clear_board()
-        density = 0.3
-        blacks = 0
-        self.green_btn_position = (int(random.uniform(1, 18)), int(random.uniform(1, 29)))
-        self.red_btn_position = (int(random.uniform(1, 18)), int(random.uniform(1, 29)))
+        density = 0.1
+
+        self.green_btn_position = (int(random.uniform(1, self.board_width-1)), int(random.uniform(1, self.board_height-1)))
+        self.red_btn_position = (int(random.uniform(1, self.board_width-1)), int(random.uniform(1, self.board_height-1)))
         for i in range(1, self.board_width - 1):
             for j in range(1, self.board_height - 1):
                 x = random.uniform(0, 1)
