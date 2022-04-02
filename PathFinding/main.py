@@ -98,8 +98,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.visited = set()
         self.cells_queue = list()
         self.find_dst = False
-        self.enemies_density = 0.2
-        self.duration = 100
+        self.enemies_density = 0.1
+        self.duration = 10
         self.move_mode = MoveMode.Animate
         self.dfs_result = list()
         self.divide_screen()
@@ -200,11 +200,23 @@ class MainWindow(QtWidgets.QMainWindow):
         self.board_options_grid_layout.addWidget(self.undo_btn, 1, 1)
 
     def colors_panel(self):
+        self.animate_or_inanimate_lbl = QtWidgets.QLabel("animation: ")
+        self.colors_horizontal_layout.addWidget(self.animate_or_inanimate_lbl)
+        self.animate_or_inanimate_lbl.setFixedHeight(30)
+        self.animate_or_inanimate_lbl.setFixedWidth(65)
+
         self.animate_or_inanimate_move_combo_box = QtWidgets.QComboBox()
         modes = ['animate', 'inanimate']
         self.animate_or_inanimate_move_combo_box.addItems(modes)
         self.animate_or_inanimate_move_combo_box.currentIndexChanged.connect(self.change_move_mode)
         self.colors_horizontal_layout.addWidget(self.animate_or_inanimate_move_combo_box)
+
+
+        self.duration_lbl = QtWidgets.QLabel("duration: ")
+        self.duration_lbl.setAlignment(QtCore.Qt.AlignCenter)
+        self.duration_lbl.setFixedHeight(30)
+        self.duration_lbl.setFixedWidth(65)
+        self.colors_horizontal_layout.addWidget(self.duration_lbl)
 
         self.duration_combo_box = QtWidgets.QComboBox()
         durations = ['10 ms', '30 ms', '50 ms', '70 ms', '100 ms', '200 ms', '300 ms', '500 ms', '1000 ms']
@@ -213,29 +225,56 @@ class MainWindow(QtWidgets.QMainWindow):
         self.colors_horizontal_layout.addWidget(self.duration_combo_box)
 
     def create_modes_panel(self):
+
+        self.solver_lbl = QtWidgets.QLabel("solver: ")
+        self.modes_grid_layout.addWidget(self.solver_lbl, 0, 0)
+        self.solver_lbl.setFixedHeight(30)
+        self.solver_lbl.setFixedWidth(50)
+        self.solver_lbl.setAlignment(QtCore.Qt.AlignCenter)
+
         self.main_mode_combo_box = QtWidgets.QComboBox()
         modes = ['Computer', 'User']
         self.main_mode_combo_box.addItems(modes)
         self.main_mode_combo_box.currentIndexChanged.connect(self.change_main_mode)
-        self.modes_grid_layout.addWidget(self.main_mode_combo_box, 0, 0)
+        self.modes_grid_layout.addWidget(self.main_mode_combo_box, 0, 1)
+
+        self.algorithm_lbl = QtWidgets.QLabel("algorithm: ")
+        self.modes_grid_layout.addWidget(self.algorithm_lbl, 0, 2)
+        self.algorithm_lbl.setFixedHeight(30)
+        self.algorithm_lbl.setFixedWidth(70)
+        self.algorithm_lbl.setAlignment(QtCore.Qt.AlignCenter)
 
         self.algorithms_combo_box = QtWidgets.QComboBox()
         algorithms = ['BFS', 'DFS', 'A*', 'UCS', 'ID']
         self.algorithms_combo_box.addItems(algorithms)
         self.algorithms_combo_box.currentIndexChanged.connect(self.change_algorithm)
-        self.modes_grid_layout.addWidget(self.algorithms_combo_box, 0, 1)
+        self.modes_grid_layout.addWidget(self.algorithms_combo_box, 0, 3)
+
+
+        self.density_lbl = QtWidgets.QLabel("density: ")
+        self.modes_grid_layout.addWidget(self.density_lbl, 1, 0)
+        self.density_lbl.setFixedHeight(30)
+        self.density_lbl.setFixedWidth(60)
+        self.density_lbl.setAlignment(QtCore.Qt.AlignCenter)
 
         self.enemies_density_combo_box = QtWidgets.QComboBox()
         densities = ['0.1', '0.2', '0.3', '0.4', '0.5']
         self.enemies_density_combo_box.addItems(densities)
         self.enemies_density_combo_box.currentIndexChanged.connect(self.change_density)
-        self.modes_grid_layout.addWidget(self.enemies_density_combo_box, 1, 0)
+        self.modes_grid_layout.addWidget(self.enemies_density_combo_box, 1, 1)
+
+
+        self.color_lbl = QtWidgets.QLabel("color: ")
+        self.modes_grid_layout.addWidget(self.color_lbl, 1, 2)
+        self.color_lbl.setFixedHeight(30)
+        self.color_lbl.setFixedWidth(60)
+        self.color_lbl.setAlignment(QtCore.Qt.AlignCenter)
 
         self.colors_combo_box = QtWidgets.QComboBox()
         colors = ['Black', 'White', 'Red', 'Green']
         self.colors_combo_box.addItems(colors)
         self.colors_combo_box.currentIndexChanged.connect(self.change_colors_combo_box)
-        self.modes_grid_layout.addWidget(self.colors_combo_box, 1, 1)
+        self.modes_grid_layout.addWidget(self.colors_combo_box, 1, 3)
 
     def change_duration(self):
         duration = self.duration_combo_box.currentText()
