@@ -510,6 +510,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def run_algorithm(self):
         self.emptying_variables()
+        self.undo()
         if self.algorithm == FindPathAlgorithm.BFS:
             s = time.time()
             self.bfs()
