@@ -88,8 +88,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.grid_board_colors = [[None for _ in range(height)]for _ in range(width)]
         self.previous_cells = [[None for _ in range(height)]for _ in range(width)]
         self.pen_color = Colors.Black
-        self.setFixedWidth(height * 30)
-        self.setFixedHeight(width * 30)
+        self.setFixedWidth(width*50)
+        self.setFixedHeight(height*25)
         self.create_board_mode = CreateBoard.handy
         self.algorithm = FindPathAlgorithm.BFS
         self.mode = Mode.Computer
@@ -99,13 +99,16 @@ class MainWindow(QtWidgets.QMainWindow):
         self.cells_queue = list()
         self.find_dst = False
         self.enemies_density = 0.1
-        self.duration = 10
+        self.duration = 3
         self.move_mode = MoveMode.Animate
         self.dfs_result = list()
         self.divide_screen()
         self.create_board()
         self.create_bottom_panel()
         self.view()
+        self.message_box = QtWidgets.QMessageBox()
+        self.message_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        self.opened_nodes = 0
         # self.test_dfs()
 
     def view(self):
@@ -219,7 +222,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.colors_horizontal_layout.addWidget(self.duration_lbl)
 
         self.duration_combo_box = QtWidgets.QComboBox()
-        durations = ['10 ms', '30 ms', '50 ms', '70 ms', '100 ms', '200 ms', '300 ms', '500 ms', '1000 ms']
+        durations = ['1 ms', '5 ms', '8 ms', '10 ms', '30 ms', '50 ms', '70 ms', '100 ms', '200 ms', '300 ms', '500 ms', '1000 ms']
         self.duration_combo_box.addItems(durations)
         self.duration_combo_box.currentIndexChanged.connect(self.change_duration)
         self.colors_horizontal_layout.addWidget(self.duration_combo_box)
@@ -232,11 +235,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.solver_lbl.setFixedWidth(50)
         self.solver_lbl.setAlignment(QtCore.Qt.AlignCenter)
 
-        self.main_mode_combo_box = QtWidgets.QComboBox()
+        self.solver_combo_box = QtWidgets.QComboBox()
         modes = ['Computer', 'User']
-        self.main_mode_combo_box.addItems(modes)
-        self.main_mode_combo_box.currentIndexChanged.connect(self.change_main_mode)
-        self.modes_grid_layout.addWidget(self.main_mode_combo_box, 0, 1)
+        self.solver_combo_box.addItems(modes)
+        self.solver_combo_box.currentIndexChanged.connect(self.change_main_mode)
+        self.modes_grid_layout.addWidget(self.solver_combo_box, 0, 1)
 
         self.algorithm_lbl = QtWidgets.QLabel("algorithm: ")
         self.modes_grid_layout.addWidget(self.algorithm_lbl, 0, 2)
@@ -295,7 +298,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.enemies_density = float(density)
 
     def change_main_mode(self):
-        mode = self.main_mode_combo_box.currentText()
+        mode = self.solver_combo_box.currentText()
         if mode == 'Computer':
             self.mode = Mode.Computer
             self.undo_btn.setEnabled(True)
@@ -311,37 +314,36 @@ class MainWindow(QtWidgets.QMainWindow):
     def is_white(self, i, j):
         return (not self.is_wall_btn(i, j)) and self.grid_board_colors[i][j] != Colors.Black
 
-    def show_dialog(self, message, type):
-        if type == DialogMode.WinGame:
-            dialog = QtWidgets.QDialog()
-            lbl = QtWidgets.QLabel(message, dialog)
-            lbl.move(10, 30)
-            lbl.setStyleSheet("color: green")
-            lbl.setFont(QFont('Calibri', 13))
-            dialog.setWindowTitle("win game")
-            dialog.setWindowModality(QtCore.Qt.ApplicationModal)
-            dialog.exec_()
-        elif type == DialogMode.InformingUser:
-            dialog = QtWidgets.QDialog()
-            lbl = QtWidgets.QLabel(message, dialog)
-            lbl.move(10, 30)
-            lbl.setStyleSheet("color: black")
-            lbl.setFont(QFont('Calibri', 13))
-            dialog.setWindowModality(QtCore.Qt.ApplicationModal)
-            dialog.exec_()
-        elif type == DialogMode.FailedPathFinding:
-            dialog = QtWidgets.QDialog()
-            lbl = QtWidgets.QLabel(message, dialog)
-            lbl.move(10, 30)
-            lbl.setStyleSheet("color: Red")
-            lbl.setFont(QFont('Calibri', 13))
-            dialog.setWindowModality(QtCore.Qt.ApplicationModal)
-            dialog.exec_()
+    def show_message_box(self, message, type):
+        self.message_box.setText(message)
+        self.message_box.show()
+
+        # if type == DialogMode.WinGame:
+        #     message_box = QtWidgets.QMessageBox()
+        #     message_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        #     message_box.setText(message)
+        #     message_box.show()
+        #     elif type == DialogMode.InformingUser:
+        #     message_box = QtWidgets.QDialog()
+        #     lbl = QtWidgets.QLabel(message, message_box)
+        #     lbl.move(10, 30)
+        #     lbl.setStyleSheet("color: black")
+        #     lbl.setFont(QFont('Calibri', 13))
+        #     message_box.setWindowModality(QtCore.Qt.ApplicationModal)
+        #     message_box.exec_()
+        # elif type == DialogMode.FailedPathFinding:
+        #     message_box = QtWidgets.QDialog()
+        #     lbl = QtWidgets.QLabel(message, message_box)
+        #     lbl.move(10, 30)
+        #     lbl.setStyleSheet("color: Red")
+        #     lbl.setFont(QFont('Calibri', 13))
+        #     message_box.setWindowModality(QtCore.Qt.ApplicationModal)
+        #     message_box.exec_()
 
     def move_green_btn(self, i, j):
         x, y = self.green_btn_position
         if (i, j) == self.red_btn_position:
-            self.show_dialog("You win game", DialogMode.WinGame)
+            self.show_message_box("You win game", DialogMode.WinGame)
             self.random_fill_board()
             return
         self.change_btn_color(x, y, Colors.White)
@@ -445,6 +447,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 return
             else:
                 self.change_btn_color(x, y, Colors.Cyan)
+                self.opened_nodes += 1
                 if self.move_mode == MoveMode.Animate:
                     self.sleep_program(self.duration)
                 self.add_neighbors((x, y))
@@ -455,23 +458,6 @@ class MainWindow(QtWidgets.QMainWindow):
         loop.exec_()
 
     def dfs(self):
-        # if (i, j) == self.red_btn_position:
-        #     self.find_dst = True
-        #     return
-        # if self.is_wall_btn(i, j) or self.grid_board_colors[i][j] == Colors.Black or self.grid_board_colors[i][j] == Colors.Cyan:
-        #     return
-        # self.change_btn_color(i, j, Colors.Cyan)
-        # self.previous_cells[i-1][j] = (i, j)
-        # self.dfs(i-1, j)
-        # if not self.find_dst:
-        #     self.previous_cells[i - 1][j] = (i, j)
-        #     self.dfs(i, j+1)
-        # if not self.find_dst:
-        #     self.previous_cells[i - 1][j] = (i, j)
-        #     self.dfs(i+1, j)
-        # if not self.find_dst:
-        #     self.previous_cells[i - 1][j] = (i, j)
-        #     self.dfs(i, j-1)
         self.cells_stack = list()
         self.all_stack_set = set()
         self.visited = set()
@@ -484,6 +470,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 return
             else:
                 self.change_btn_color(x, y, Colors.Cyan)
+                self.opened_nodes += 1
                 self.visited.add((x, y))
                 self.all_stack_set.add((x, y))
                 if self.move_mode == MoveMode.Animate:
@@ -510,6 +497,7 @@ class MainWindow(QtWidgets.QMainWindow):
             if (i, j) == self.red_btn_position:
                 return
             self.change_btn_color(i, j, Colors.Cyan)
+            self.opened_nodes += 1
             if self.move_mode == MoveMode.Animate:
                 self.sleep_program(self.duration)
             self.add_neighbors(best_node)
@@ -529,52 +517,71 @@ class MainWindow(QtWidgets.QMainWindow):
         i, j = self.previous_cells[i][j]
         self.recursive_draw_path(i, j)
         self.change_btn_color(i, j, Colors.Purple)
+        self.add_number_to_btn(i, j)
         if self.move_mode == MoveMode.Animate:
             self.sleep_program(self.duration)
-        self.add_number_to_btn(i, j)
-        # self.sleep_program(300)
 
     def shortest_path(self):
         i, j = self.red_btn_position
         self.recursive_draw_path(i, j)
-        # while self.previous_cells[i][j]:
-        #     self.change_btn_color(i, j, Colors.Purple)
-        #     # self.sleep_program(200)
-        #     i, j = self.previous_cells[i][j]
 
     def emptying_variables(self):
         self.find_dst = False
         self.previous_cells = [[None for _ in range(self.board_height)]for _ in range(self.board_width)]
         self.counter = 0
+        self.opened_nodes = 0
+
+    def no_select_src_or_dst(self):
+        if self.green_btn_position is None:
+            self.show_message_box("source is not selected", DialogMode.InformingUser)
+            return True
+        elif self.red_btn_position is None:
+            self.show_message_box("destination is not selected", DialogMode.InformingUser)
+            return True
+        return False
+
+    def change_objects_status_to(self, to):
+        self.run_algorithm_btn.setEnabled(to)
+        self.undo_btn.setEnabled(to)
+        self.clear_grid_btn.setEnabled(to)
+        self.colors_combo_box.setEnabled(to)
+        self.solver_combo_box.setEnabled(to)
+        self.auto_generate_pattern_btn.setEnabled(to)
+        self.duration_combo_box.setEnabled(to)
+        self.animate_or_inanimate_move_combo_box.setEnabled(to)
 
     def run_algorithm(self):
         self.emptying_variables()
         self.undo()
+        if self.no_select_src_or_dst():
+            return
+        self.change_objects_status_to(False)
         if self.algorithm == FindPathAlgorithm.BFS:
-            s = time.time()
+            start = time.time()
             self.bfs()
             self.shortest_path()
-            print(time.time()-s)
+            end = time.time()
         elif self.algorithm == FindPathAlgorithm.DFS:
-            s = time.time()
+            start = time.time()
             self.dfs()
             self.shortest_path()
-            # self.sleep_program(2000)
-            # for item in self.dfs_result:
-            #     i, j = item
-            #     self.change_btn_color(i, j, Colors.Red)
-            #     # self.sleep_program(300)
-            # self.shortest_path()
-            print(time.time()-s)
+            end = time.time()
         elif self.algorithm == FindPathAlgorithm.A_Star:
+            start = time.time()
             self.a_star()
             self.shortest_path()
+            end = time.time()
+        self.run_time_lbl.setText(str(end-start))
+        self.open_nodes_lbl.setText(str(self.opened_nodes))
+        self.change_objects_status_to(True)
 
     def clear_board(self):
         for i in range(1, self.board_width-1):
             for j in range(1, self.board_height-1):
                 self.change_btn_color(i, j, Colors.White)
                 self.grid_board[i][j].setText("")
+        self.green_btn_position = None
+        self.red_btn_position = None
 
     def undo(self):
         for i in range(1, self.board_width - 1):
@@ -633,8 +640,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def grid_cells_pressed(self, i, j):
         if self.create_board_mode == CreateBoard.handy:
-            self.grid_board[i][j].setStyleSheet(f"background-color: {self.pen_color.value}")
             if self.pen_color == Colors.Green:
+                if self.grid_board_colors[i][j] == Colors.Red:
+                    self.red_btn_position = None
                 if self.green_btn_position is not None:
                     x, y = self.green_btn_position
                     if self.grid_board_colors[x][y] == Colors.Green:
@@ -642,11 +650,17 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.green_btn_position = (i, j)
 
             elif self.pen_color == Colors.Red:
+                if self.grid_board_colors[i][j] == Colors.Green:
+                    self.green_btn_position = None
                 if self.red_btn_position is not None:
                     x, y = self.red_btn_position
                     if self.grid_board_colors[x][y] == Colors.Red:
                         self.change_btn_color(x, y, Colors.White)
                 self.red_btn_position = (i, j)
+            elif (i, j) == self.green_btn_position:
+                self.green_btn_position = None
+            elif (i, j) == self.red_btn_position:
+                self.red_btn_position = None
             self.change_btn_color(i, j, self.pen_color)
         # if
 
