@@ -155,9 +155,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.panel_grid_layout.addLayout(self.modes_grid_layout, 0, 1)
         self.create_modes_panel()
 
-        self.colors_horizontal_layout = QtWidgets.QHBoxLayout()
-        self.panel_grid_layout.addLayout(self.colors_horizontal_layout, 1, 0)
-        self.colors_panel()
+        self.animation_panel_horizontal_layout = QtWidgets.QHBoxLayout()
+        self.panel_grid_layout.addLayout(self.animation_panel_horizontal_layout, 1, 0)
+        self.animation_panel()
 
         self.run_panel_vertical_layout = QtWidgets.QVBoxLayout()
         self.panel_grid_layout.addLayout(self.run_panel_vertical_layout, 1, 1)
@@ -202,9 +202,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.undo_btn.pressed.connect(self.undo)
         self.board_options_grid_layout.addWidget(self.undo_btn, 1, 1)
 
-    def colors_panel(self):
+    def animation_panel(self):
         self.animate_or_inanimate_lbl = QtWidgets.QLabel("animation: ")
-        self.colors_horizontal_layout.addWidget(self.animate_or_inanimate_lbl)
+        self.animation_panel_horizontal_layout.addWidget(self.animate_or_inanimate_lbl)
         self.animate_or_inanimate_lbl.setFixedHeight(30)
         self.animate_or_inanimate_lbl.setFixedWidth(65)
 
@@ -212,20 +212,20 @@ class MainWindow(QtWidgets.QMainWindow):
         modes = ['animate', 'inanimate']
         self.animate_or_inanimate_move_combo_box.addItems(modes)
         self.animate_or_inanimate_move_combo_box.currentIndexChanged.connect(self.change_move_mode)
-        self.colors_horizontal_layout.addWidget(self.animate_or_inanimate_move_combo_box)
+        self.animation_panel_horizontal_layout.addWidget(self.animate_or_inanimate_move_combo_box)
 
 
         self.duration_lbl = QtWidgets.QLabel("duration: ")
         self.duration_lbl.setAlignment(QtCore.Qt.AlignCenter)
         self.duration_lbl.setFixedHeight(30)
         self.duration_lbl.setFixedWidth(65)
-        self.colors_horizontal_layout.addWidget(self.duration_lbl)
+        self.animation_panel_horizontal_layout.addWidget(self.duration_lbl)
 
         self.duration_combo_box = QtWidgets.QComboBox()
         durations = ['1 ms', '5 ms', '8 ms', '10 ms', '30 ms', '50 ms', '70 ms', '100 ms', '200 ms', '300 ms', '500 ms', '1000 ms']
         self.duration_combo_box.addItems(durations)
         self.duration_combo_box.currentIndexChanged.connect(self.change_duration)
-        self.colors_horizontal_layout.addWidget(self.duration_combo_box)
+        self.animation_panel_horizontal_layout.addWidget(self.duration_combo_box)
 
     def create_modes_panel(self):
 
